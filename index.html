@@ -1,0 +1,62 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect to Metamask Wallet</title>
+    <link rel="icon" type="image/png" href="img/MetaMask_Fox.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  </head>
+
+  <body>
+    <div>
+      <h1>Click to connect your wallet</h1>
+      <button id="connectWallet" >
+        <img src="img/MetaMask_Fox.png" />
+        Connect Wallet
+      </button>
+      <div id="my_wallet"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.0/web3.min.js"></script>
+    <script src="chainNetwork.js"></script>
+    <script>
+      function loadWallet(){
+        document.querySelector( '#connectWallet' ).style.display = "none";
+        document.querySelector( '#my_wallet' ).innerHTML = '<div class="loader"></div>';
+        setTimeout( connectWallet, 1000 );
+      }
+      function disconnectWallet(){
+        document.querySelector( 'h1' ).innerHTML = '<i class="fa fa-error"></i>Disconnected!';
+        window.location.reload();
+      }
+
+      async function connectWallet() {
+        if ( typeof window.ethereum != 'undefined' ) {
+          await window.ethereum.request({ 
+            method: "eth_requestAccounts" 
+          })
+          .then(( result ) => {
+            window.web3 = new Web3( window.ethereum );
+            const account = web3.eth.accounts;
+            const walletAddress = account.givenProvider.selectedAddress;
+            const chainID = window.ethereum.networkVersion;
+            document.querySelector( 'h1' ).innerHTML = '<span class="success"><i class="fa fa-check-circle"></i>Connected!</span>';
+            document.querySelector( '#my_wallet' ).innerHTML = walletAddress + getNetwork( chainID );
+    	      window.ethereum.on( 'accountsChanged', disconnectWallet );
+    	      window.ethereum.on( 'chainChanged', ( _chainId ) => loadWallet() );
+          })
+          .catch((error) => {
+            window.location.reload();
+          });
+          
+        } else {
+          document.querySelector( 'h1' ).innerHTML = '<img src="img/MetaMask_Fox.png" /> Metamask wallet not installed';
+          document.querySelector( '#my_wallet' ).innerHTML = '<p>Refer <a target="_blank" class="link" href="https://metamask.io/download/">here<a/> to download</p>';
+        }
+      }
+      document.getElementById( "connectWallet" ).addEventListener( "click", loadWallet );
+    </script>
+  </body>
+</html>
